@@ -6,18 +6,15 @@ use std::collections::HashMap;
 fn main() -> Result<(), Box<dyn Error>> {
     let file_path = "Wiki-Vote.txt"; // Path to the dataset file
 
-    // Open the file and create a buffered reader
     let file = File::open(file_path)?;
     let reader = BufReader::new(file);
 
-    // Adjacency list to store the graph
     let mut graph: HashMap<u32, Vec<u32>> = HashMap::new();
 
-    // Read the file line by line
     for line in reader.lines() {
         let line = line?;
         if line.starts_with('#') {
-            continue; // Skip comment lines
+            continue;
         }
 
         let parts: Vec<&str> = line.split_whitespace().collect();
@@ -34,9 +31,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         out_degrees.insert(*node, neighbors.len());
     }
 
-    // Print first 10 nodes and their out-degrees
+    // Calculate in-degrees
+    let mut in_degrees = HashMap::new();
+    for neighbors in graph.values() {
+        for &neighbor in neighbors {
+            *in_degrees.entry(neighbor).or_insert(0) += 1;
+        }
+    }
+
+    // Print first 10 nodes and their degrees
     println!("\nOut-degrees for first 10 nodes:");
     for (node, degree) in out_degrees.iter().take(10) {
+        println!("Node {}: {}", node, degree);
+    }
+
+    println!("\nIn-degrees for first 10 nodes:");
+    for (node, degree) in in_degrees.iter().take(10) {
         println!("Node {}: {}", node, degree);
     }
 

@@ -20,7 +20,6 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue; // Skip comment lines
         }
 
-        // Split each line into two parts: FromNodeId and ToNodeId
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() == 2 {
             let from_node: u32 = parts[0].parse()?;
@@ -29,10 +28,16 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // Print first 10 nodes and their edges
-    println!("First 10 nodes and their neighbors:");
-    for (node, neighbors) in graph.iter().take(10) {
-        println!("Node {}: {:?}", node, neighbors);
+    // Calculate out-degrees
+    let mut out_degrees = HashMap::new();
+    for (node, neighbors) in &graph {
+        out_degrees.insert(*node, neighbors.len());
+    }
+
+    // Print first 10 nodes and their out-degrees
+    println!("\nOut-degrees for first 10 nodes:");
+    for (node, degree) in out_degrees.iter().take(10) {
+        println!("Node {}: {}", node, degree);
     }
 
     Ok(())

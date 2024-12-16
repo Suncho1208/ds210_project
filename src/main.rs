@@ -105,16 +105,18 @@ fn calculate_average_centrality(degree_centrality: &HashMap<u32, usize>) -> f64 
     let total_degree: usize = degree_centrality.values().sum();
 
     let node_count = degree_centrality.len();
-    
+
     total_degree as f64 / node_count as f64
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
 
     #[test]
     fn test_graph_construction() {
+        // Test if the graph is built correctly
         let mut graph = HashMap::new();
         graph.entry(1).or_default().push(2);
         graph.entry(1).or_default().push(3);
@@ -123,28 +125,69 @@ mod tests {
     }
 
     #[test]
-    fn test_bfs_count() {
+    fn test_bfs_visits_correct_nodes() {
+        // Test BFS traversal to ensure all connected nodes are visited
         let mut graph = HashMap::new();
         graph.entry(1).or_default().push(2);
         graph.entry(1).or_default().push(3);
         graph.entry(2).or_default().push(4);
+        graph.entry(3).or_default().push(5);
 
         let visited_count = bfs(&graph, 1);
-
-        assert_eq!(visited_count, 4);
+        assert_eq!(visited_count, 5); // 5 nodes in the connected component
     }
 
     #[test]
-    fn test_average_centrality() {
+    fn test_degree_centrality() {
+        // Test calculation of degree centrality
         let mut graph = HashMap::new();
         graph.entry(1).or_default().push(2);
         graph.entry(1).or_default().push(3);
         graph.entry(2).or_default().push(3);
 
-        let centrality = calculate_degree_centrality(&graph);
+        let degree_centrality = calculate_degree_centrality(&graph);
 
-        let avg_centrality = calculate_average_centrality(&centrality);
+        assert_eq!(degree_centrality[&1], 2); // Node 1 has two outgoing edges
+        assert_eq!(degree_centrality[&2], 2); // Node 2 has 1 out-degree, 1 in-degree
+        assert_eq!(degree_centrality[&3], 2); // Node 3 has 2 in-degrees
+    }
 
-        assert!((avg_centrality - 1.33).abs() < 0.01);
+    #[test]
+    fn test_average_degree_centrality() {
+        // Test average degree centrality
+        let mut graph = HashMap::new();
+        graph.entry(1).or_default().push(2);
+        graph.entry(1).or_default().push(3);
+        graph.entry(2).or_default().push(3);
+
+        let degree_centrality = calculate_degree_centrality(&graph);
+        let avg_centrality = calculate_average_centrality(&degree_centrality);
+
+        assert!((avg_centrality - 1.33).abs() < 0.01); // Average degree centrality ~1.33
+    }
+
+    #[test]
+    fn test_empty_graph() {
+        // Test behavior on an empty graph
+        let graph: HashMap<u32, Vec<u32>> = HashMap::new();
+        let degree_centrality = calculate_degree_centrality(&graph);
+        let visited_count = bfs(&graph, 1);
+
+        assert!(degree_centrality.is_empty()); // Centrality map should be empty
+        assert_eq!(visited_count, 0); // BFS should visit 0 nodes
+    }
+
+    #[test]
+    fn test_disconnected_graph() {
+        // Test behavior on a disconnected graph
+        let mut graph = HashMap::new();
+        graph.entry(1).or_default().push(2);
+        graph.entry(3).or_default().push(4);
+
+        let visited_count_from_1 = bfs(&graph, 1);
+        let visited_count_from_3 = bfs(&graph, 3);
+
+        assert_eq!(visited_count_from_1, 2); // Component starting at 1 has 2 nodes
+        assert_eq!(visited_count_from_3, 2); // Component starting at 3 has 2 nodes
     }
 }

@@ -6,8 +6,8 @@ use std::io::{BufRead, BufReader};
 fn main() -> Result<(), Box<dyn Error>> {
     let file_path = "Wiki-Vote.txt"; // Path to the dataset file
 
-    // Open the file and create a buffered reader
     let file = File::open(file_path)?;
+
     let reader = BufReader::new(file);
 
     // Adjacency list to store the graph
@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 fn bfs(graph: &HashMap<u32, Vec<u32>>, start: u32) -> usize {
     let mut visited = HashMap::new();
     let mut queue = VecDeque::new();
+
     let mut count = 0;
 
     queue.push_back(start);
@@ -78,6 +79,7 @@ fn bfs(graph: &HashMap<u32, Vec<u32>>, start: u32) -> usize {
 
     count
 }
+
 
 // Calculate degree centrality for all nodes
 fn calculate_degree_centrality(graph: &HashMap<u32, Vec<u32>>) -> HashMap<u32, usize> {
@@ -101,6 +103,48 @@ fn calculate_degree_centrality(graph: &HashMap<u32, Vec<u32>>) -> HashMap<u32, u
 // Calculate average degree centrality
 fn calculate_average_centrality(degree_centrality: &HashMap<u32, usize>) -> f64 {
     let total_degree: usize = degree_centrality.values().sum();
+
     let node_count = degree_centrality.len();
+    
     total_degree as f64 / node_count as f64
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_graph_construction() {
+        let mut graph = HashMap::new();
+        graph.entry(1).or_default().push(2);
+        graph.entry(1).or_default().push(3);
+
+        assert_eq!(graph[&1], vec![2, 3]);
+    }
+
+    #[test]
+    fn test_bfs_count() {
+        let mut graph = HashMap::new();
+        graph.entry(1).or_default().push(2);
+        graph.entry(1).or_default().push(3);
+        graph.entry(2).or_default().push(4);
+
+        let visited_count = bfs(&graph, 1);
+
+        assert_eq!(visited_count, 4);
+    }
+
+    #[test]
+    fn test_average_centrality() {
+        let mut graph = HashMap::new();
+        graph.entry(1).or_default().push(2);
+        graph.entry(1).or_default().push(3);
+        graph.entry(2).or_default().push(3);
+
+        let centrality = calculate_degree_centrality(&graph);
+
+        let avg_centrality = calculate_average_centrality(&centrality);
+
+        assert!((avg_centrality - 1.33).abs() < 0.01);
+    }
 }
